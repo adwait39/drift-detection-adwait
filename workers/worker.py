@@ -1,10 +1,15 @@
 import json
 import pandas as pd
 import os
-import numpy as np
 
 from storage_minio import download_from_minio
-from sentence_transformers import SentenceTransformer
+
+# --- IMPORT DRIFT FUNCTIONS ---
+from workers.compute import compute_all
+from drift_detection import *
+
+# --- IMPORT DB FUNCTIONS ---
+import db   # since db.py contains functions, NOT a class
 
 # --- GOOGLE PUBSUB ---
 from google.cloud import pubsub_v1
@@ -12,40 +17,11 @@ from google.cloud import pubsub_v1
 PROJECT_ID = "focus-mechanic-474016-s2"
 SUBSCRIPTION_NAME = "drift_jobs_sub"
 
-# Correct way to build subscription path
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
 
 print(f"[WORKER] Using subscription: {subscription_path}")
-print("[WORKER] Loading SentenceTransformer model...")
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-def compute_drift(baseline_embeddings, drift_embeddings):
-    baseline_mean = baseline_embeddings.mean(axis=0)
-    drift_mean = drift_embeddings.mean(axis=0)
-
-    cosine_similarity = np.dot(baseline_mean, drift_mean) / (
-        np.linalg.norm(baseline_mean) * np.linalg.norm(drift_mean)
-    )
-    return 1 - cosine_similarity
-
-def run_drift_detection(baseline_df, drift_df, job):
-    print("\n[WORKER] Drift detection START")
-    print("[WORKER] Job:", job)
-
-    baseline_texts = baseline_df.iloc[:, 0].astype(str).tolist()
-    drift_texts = drift_df.iloc[:, 0].astype(str).tolist()
-
-    baseline_embeddings = model.encode(baseline_texts)
-    drift_embeddings = model.encode(drift_texts)
-
-    drift_score = compute_drift(baseline_embeddings, drift_embeddings)
-
-    print(f"[WORKER] DRIFT SCORE = {drift_score:.4f}")
-    if drift_score > 0.15:
-        print("[WORKER] 🚨 HIGH DRIFT DETECTED!")
-    else:
-        print("[WORKER] Drift within normal range.")
+print("[WORKER] Worker ready.")
 
 def process_job(job):
     bucket = job["bucket"]
@@ -63,24 +39,45 @@ def process_job(job):
     print(f"[WORKER] Downloading drift: {drift_key}")
     download_from_minio(bucket, drift_key, drift_local)
 
-    baseline_df = pd.read_csv(baseline_local)
-    drift_df = pd.read_csv(drift_local)
+    baseline_df = pd.read_csv(baseline_local, header=None)
+    drift_df = pd.read_csv(drift_local, header=None)
 
-    run_drift_detection(baseline_df, drift_df, job)
+    baseline_texts = baseline_df[baseline_df.columns[0]].astype(str).tolist()
+    drift_texts = drift_df[drift_df.columns[0]].astype(str).tolist()
+
+    # ----------------------------------------------------
+    # CALL YOUR UNIFIED compute_all()
+    # ----------------------------------------------------
+    dataset_name = drift_key.split("/")[-1]
+
+    metrics = compute_all(baseline_texts, drift_texts, dataset_name)
+
+    print("\n[WORKER] DRIFT METRICS:")
+    print(metrics)
+
+    # ----------------------------------------------------
+    # SAVE METRICS TO POSTGRES
+    # ----------------------------------------------------
+    db.create_table_if_not_exists()      # correct function name
+    db.insert_metrics(metrics)
+
+    print("[WORKER] Metrics saved to database.")
 
 def callback(message):
+    print("\n[WORKER] Received message")
     job = json.loads(message.data.decode("utf-8"))
-    print("\n[WORKER] Received job:", job)
+
     process_job(job)
     message.ack()
+    print("[WORKER] Message processed & acknowledged.")
 
 def main():
-    print("[WORKER] Listening for Pub/Sub messages...")
+    print("[WORKER] Listening for messages...")
     subscriber.subscribe(subscription_path, callback=callback)
 
     # Keep alive
-    import time
     while True:
+        import time
         time.sleep(60)
 
 if __name__ == "__main__":
