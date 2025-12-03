@@ -1,5 +1,5 @@
 import pandas as pd
-from drift_detection_1 import *
+from drift_detection import *
 from Db import db
 
 
