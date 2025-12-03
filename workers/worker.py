@@ -2,14 +2,17 @@ import json
 import pandas as pd
 import os
 
+# --- MINIO ---
 from storage_minio import download_from_minio
 
-# --- IMPORT DRIFT FUNCTIONS ---
+# --- DRIFT COMPUTATION ---
 from workers.compute import compute_all
-from drift_detection import *
 
-# --- IMPORT DB FUNCTIONS ---
-import db   # since db.py contains functions, NOT a class
+# --- DATABASE ---
+import db
+
+# --- GMAIL NOTIFIER ---
+from notifier import send_email_alert
 
 # --- GOOGLE PUBSUB ---
 from google.cloud import pubsub_v1
@@ -22,6 +25,10 @@ subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
 
 print(f"[WORKER] Using subscription: {subscription_path}")
 print("[WORKER] Worker ready.")
+
+# Email address to receive drift alerts
+ALERT_EMAIL = "yourgmail@gmail.com"   # <-- CHANGE THIS
+
 
 def process_job(job):
     bucket = job["bucket"]
@@ -46,39 +53,74 @@ def process_job(job):
     drift_texts = drift_df[drift_df.columns[0]].astype(str).tolist()
 
     # ----------------------------------------------------
-    # CALL YOUR UNIFIED compute_all()
+    # Compute drift metrics
     # ----------------------------------------------------
     dataset_name = drift_key.split("/")[-1]
-
     metrics = compute_all(baseline_texts, drift_texts, dataset_name)
 
     print("\n[WORKER] DRIFT METRICS:")
     print(metrics)
 
     # ----------------------------------------------------
-    # SAVE METRICS TO POSTGRES
+    # Save to PostgreSQL
     # ----------------------------------------------------
-    db.create_table_if_not_exists()      # correct function name
+    db.create_table_if_not_exists()
     db.insert_metrics(metrics)
-
     print("[WORKER] Metrics saved to database.")
+
+    # ----------------------------------------------------
+    # Gmail Alerts (instead of Slack/Gemini)
+    # ----------------------------------------------------
+    try:
+        ood_rate = float(metrics.get("ood_rate", 0.0))
+        topic_kl = float(metrics.get("topic_kl", 0.0))
+        semantic_mean = float(metrics.get("semantic_mean", 0.0))
+
+        # Define high drift conditions
+        high_drift = (
+            ood_rate > 0.5
+            or topic_kl > 1.0
+            or semantic_mean < 0.30     # NOTE: lower semantic_mean = more drift
+        )
+
+        if high_drift:
+            print("[WORKER] High drift detected → sending Gmail alert...")
+
+            subject = f"[DRIFT ALERT] High Drift in {dataset_name}"
+            body = (
+                f"A drift was detected in dataset: {dataset_name}\n\n"
+                f"Drift Metrics:\n"
+                f"  • OOD Rate: {ood_rate}\n"
+                f"  • Topic KL Divergence: {topic_kl}\n"
+                f"  • Semantic Mean Similarity: {semantic_mean}\n\n"
+                f"Recommended Action: Review drift immediately.\n"
+            )
+
+            send_email_alert(subject, body, ALERT_EMAIL)
+
+        else:
+            print("[WORKER] Drift within normal range → no email alert.")
+
+    except Exception as e:
+        print(f"[WORKER] Gmail notifier failed → {e}")
+
 
 def callback(message):
     print("\n[WORKER] Received message")
     job = json.loads(message.data.decode("utf-8"))
-
     process_job(job)
     message.ack()
     print("[WORKER] Message processed & acknowledged.")
+
 
 def main():
     print("[WORKER] Listening for messages...")
     subscriber.subscribe(subscription_path, callback=callback)
 
-    # Keep alive
     while True:
         import time
         time.sleep(60)
+
 
 if __name__ == "__main__":
     main()
