@@ -77,10 +77,10 @@ This project is essentially a **mini-production MLOps drift monitoring engine**,
 | ------------------------- | ------------------------------------------- |
 | **FastAPI**               | Upload datasets, trigger drift checks       |
 | **MinIO (S3-compatible)** | Store baseline + drift CSV files            |
-| **RabbitMQ**              | Queue drift processing jobs asynchronously  |
+| **Google-Pub-sub**              | Queue drift processing jobs asynchronously  |
 | **SentenceTransformers**  | Generate embeddings for semantic comparison |
 | **Python Worker Service** | Downloads datasets, computes drift          |
-| **Docker**                | Runs MinIO                                  |
+| **Docker**                | Containorisation                                |
 | **Uvicorn**               | ASGI server for FastAPI                     |
 
 ---
