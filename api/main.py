@@ -71,3 +71,24 @@ async def check_drift(
         "drift_uri": drift_uri,
         "job": job,
     }
+
+# -------------------------------------------------
+# NEW: endpoint to read latest drift result
+# -------------------------------------------------
+@app.get("/latest-result")
+async def latest_result():
+    """
+    Returns the most recent drift metrics saved by the worker.
+    The worker writes data/latest_result.json.
+    """
+    latest_path = os.path.join("data", "latest_result.json")
+    if not os.path.exists(latest_path):
+        return {"status": "no_result_yet"}
+
+    with open(latest_path, "r") as f:
+        metrics = json.load(f)
+
+    return {
+        "status": "ok",
+        "metrics": metrics,
+    }

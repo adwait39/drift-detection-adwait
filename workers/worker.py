@@ -62,6 +62,20 @@ def process_job(job):
     print(metrics)
 
     # ----------------------------------------------------
+    # NEW: Save latest result for UI (Streamlit)
+    # ----------------------------------------------------
+    try:
+        os.makedirs("data", exist_ok=True)
+        latest_path = os.path.join("data", "latest_result.json")
+
+        with open(latest_path, "w") as f:
+            json.dump(metrics, f, indent=2)
+
+        print(f"[WORKER] Saved latest result → {latest_path}")
+    except Exception as e:
+        print(f"[WORKER] Failed to save latest result: {e}")
+
+    # ----------------------------------------------------
     # Save to PostgreSQL
     # ----------------------------------------------------
     db.create_table_if_not_exists()
@@ -69,18 +83,17 @@ def process_job(job):
     print("[WORKER] Metrics saved to database.")
 
     # ----------------------------------------------------
-    # Gmail Alerts (instead of Slack/Gemini)
+    # Gmail Alerts (Conditions)
     # ----------------------------------------------------
     try:
         ood_rate = float(metrics.get("ood_rate", 0.0))
         topic_kl = float(metrics.get("topic_kl", 0.0))
         semantic_mean = float(metrics.get("semantic_mean", 0.0))
 
-        # Define high drift conditions
         high_drift = (
             ood_rate > 0.5
             or topic_kl > 1.0
-            or semantic_mean < 0.30     # NOTE: lower semantic_mean = more drift
+            or semantic_mean < 0.30
         )
 
         if high_drift:

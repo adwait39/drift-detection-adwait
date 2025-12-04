@@ -1,0 +1,15 @@
+{
+  "dataset": "drift_5_intent.csv",
+  "semantic_mean": 0.18910950933016976,
+  "semantic_median": 0.17744108797984415,
+  "semantic_min": 0.03137393483523376,
+  "topic_shift_mean": 0.7989994620984352,
+  "topic_shift_max": 0.9452048162849305,
+  "topic_kl": 0.14918741058227994,
+  "lexical_overlap": 0.0,
+  "length_psi": 0.0,
+  "length_ks_p": 2.699364954232939e-289,
+  "ood_rate": 1.0,
+  "ood_min": 0.03137393483523376,
+  "ood_mean": 0.18910950933016976
+}
