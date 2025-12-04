@@ -14,22 +14,6 @@
 
 # **Project Overview**
 
-Perfect — I will **update your README**, rewrite it professionally, and ensure it **accurately reflects your Architecture Diagram** *without inserting the image*.
-I will incorporate all components from the diagram:
-
-* Client
-* FastAPI Server
-* MinIO
-* Google Pub/Sub
-* Drift Detection Service (Worker)
-* Gemini Alerts (LLM summaries)
-* PostgreSQL (drift history)
-* Analytics & Dashboards
-
-Here is your **updated, clean, professional README.md** ready to paste into GitHub:
-
----
-
 # **ML Data Drift Detection System**
 
 ### *Real-Time Drift Monitoring Using FastAPI, RabbitMQ / PubSub, MinIO, and Sentence Transformers*
