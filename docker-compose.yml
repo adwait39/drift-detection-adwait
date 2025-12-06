@@ -8,13 +8,13 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - rabbitmq
+      
       - minio
     environment:
       MINIO_URL: "http://minio:9000"
       MINIO_ACCESS_KEY: "minioadmin"
       MINIO_SECRET_KEY: "minioadmin"
-      RABBITMQ_HOST: "rabbitmq"
+      
 
   streamlit:
     build:
@@ -33,14 +33,12 @@ services:
       dockerfile: workers/Dockerfile
     container_name: drift_worker
     depends_on:
-      - rabbitmq
       - minio
       - api
     environment:
       MINIO_URL: "http://minio:9000"
       MINIO_ACCESS_KEY: "minioadmin"
       MINIO_SECRET_KEY: "minioadmin"
-      RABBITMQ_HOST: "rabbitmq"
 
   minio:
     image: minio/minio:latest

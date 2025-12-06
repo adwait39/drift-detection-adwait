@@ -19,12 +19,3 @@ def compute_all(baseline, drift, name):
     return r
 
 
-if __name__ == "__main__":
-    baseline = load_texts("data/baseline_1000.csv")
-    drift    = load_texts("data/drift_1_semantic.csv")
-
-    metrics = compute_all(baseline, drift, "drift_sample")
-
-    print(metrics)
-
-    db.insert_metrics(metrics)

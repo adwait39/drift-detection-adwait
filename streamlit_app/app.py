@@ -12,9 +12,6 @@ st.markdown(
     "**Google Pub/Sub → Worker → Gmail → Results**."
 )
 
-# -------------------------------------------------
-# 1️⃣ Upload baseline & drift → /check-drift
-# -------------------------------------------------
 st.subheader("1. Upload Baseline & Drift Datasets")
 
 col1, col2 = st.columns(2)
@@ -54,9 +51,6 @@ if st.button("🚀 Run Drift Check"):
 
 st.markdown("---")
 
-# -------------------------------------------------
-# 2️⃣ Fetch & display latest drift metrics
-# -------------------------------------------------
 st.subheader("2. View Latest Drift Result from Worker")
 
 st.caption(
@@ -82,9 +76,9 @@ if st.button("🔄 Fetch Latest Result"):
                     st.success("Latest drift metrics:")
                     st.json(metrics)
 
-                    # If metrics are numeric, show a nice table + bar chart.
+               
                     if isinstance(metrics, dict):
-                        # Build dataframe from numeric items only
+                       
                         numeric_items = {
                             k: v for k, v in metrics.items()
                             if isinstance(v, (int, float))

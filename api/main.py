@@ -5,8 +5,6 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 
 from storage_minio import upload_to_minio
-
-# --- GOOGLE PUBSUB ---
 from google.cloud import pubsub_v1
 
 BUCKET_NAME = "ml-drift-datasets"
@@ -72,9 +70,7 @@ async def check_drift(
         "job": job,
     }
 
-# -------------------------------------------------
-# NEW: endpoint to read latest drift result
-# -------------------------------------------------
+
 @app.get("/latest-result")
 async def latest_result():
     """

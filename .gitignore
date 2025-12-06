@@ -1,0 +1,7 @@
+key_1.json
+node_modules/
+worker-tmp/
+tmp/
+_pycache__
+.venv
+.env

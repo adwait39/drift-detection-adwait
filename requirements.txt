@@ -1,0 +1,11 @@
+pandas
+numpy
+scipy
+scikit-learn
+sentence-transformers
+sqlalchemy
+psycopg2-binary
+requests
+spacy
+python-dotenv
+google-generativeai

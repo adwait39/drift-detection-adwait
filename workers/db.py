@@ -1,16 +1,21 @@
 import json
 import pandas as pd
+import os
 from sqlalchemy import create_engine, text
 from urllib.parse import quote
+from sqlalchemy import text
+from dotenv import load_dotenv
 
+
+load_dotenv()
 # ============================================================
 # POSTGRES CONNECTION
 # ============================================================
-USER = "postgres"
-PASSWORD = "Supabase@123!"
-HOST = "db.gowjdmjlspbwfypvvexy.supabase.co"
-PORT = "5432"
-DB = "postgres"
+USER = os.getenv("USER") 
+PASSWORD = os.getenv("PASSWORD")
+HOST = os.getenv("HOST")
+PORT = os.getenv("PORT")
+DB = os.getenv("DB")
 
 enc_pw = quote(PASSWORD)
 
@@ -18,19 +23,15 @@ engine = create_engine(
     f"postgresql+psycopg2://{USER}:{enc_pw}@{HOST}:{PORT}/{DB}?sslmode=require"
 )
 
-# ============================================================
-# HELPER: PRINT WITH COLORS (optional)
-# ============================================================
+
 def log(msg):
-    print(f"\033[92m{msg}\033[0m")  # green
+    print(f"\033[92m{msg}\033[0m")  
 
 def log_error(msg):
-    print(f"\033[91m{msg}\033[0m")  # red
+    print(f"\033[91m{msg}\033[0m")  
 
 
-# ============================================================
-# 1. TEST CONNECTION
-# ============================================================
+
 def test_connection():
     try:
         with engine.connect() as conn:
@@ -40,9 +41,6 @@ def test_connection():
         log_error(f"[DB] Connection FAILED → {e}")
 
 
-# ============================================================
-# 2. CREATE TABLE IF NOT EXISTS
-# ============================================================
 def create_table_if_not_exists(table="drift_metrics"):
     query = f"""
     CREATE TABLE IF NOT EXISTS {table} (
@@ -71,10 +69,7 @@ def create_table_if_not_exists(table="drift_metrics"):
         log_error(f"[DB] Table creation FAILED → {e}")
 
 
-# ============================================================
-# 3. INSERT ROW
-# ============================================================
-from sqlalchemy import text
+
 
 def insert_metrics(metrics: dict, table="drift_metrics"):
     try:
@@ -98,9 +93,7 @@ def insert_metrics(metrics: dict, table="drift_metrics"):
     except Exception as e:
         print(f"[DB] INSERT FAILED → {e}")
 
-# ============================================================
-# 4. FETCH LAST ROW
-# ============================================================
+
 def fetch_last_row(table="drift_metrics"):
     try:
         with engine.connect() as conn:
@@ -110,10 +103,6 @@ def fetch_last_row(table="drift_metrics"):
     except Exception as e:
         log_error(f"[DB] FETCH FAILED → {e}")
 
-
-# ============================================================
-# OPTIONAL: Quick test block
-# ============================================================
 if __name__ == "__main__":
     test_connection()
     create_table_if_not_exists()

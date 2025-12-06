@@ -1,21 +1,13 @@
 import json
 import pandas as pd
 import os
-
-# --- MINIO ---
 from storage_minio import download_from_minio
-
-# --- DRIFT COMPUTATION ---
 from workers.compute import compute_all
-
-# --- DATABASE ---
 import db
-
-# --- GMAIL NOTIFIER ---
-from notifier import send_email_alert
-
-# --- GOOGLE PUBSUB ---
+from notifier import send_email_alert , send_slack_alert
 from google.cloud import pubsub_v1
+from dotenv import load_dotenv
+load_dotenv()
 
 PROJECT_ID = "focus-mechanic-474016-s2"
 SUBSCRIPTION_NAME = "drift_jobs_sub"
@@ -26,8 +18,8 @@ subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
 print(f"[WORKER] Using subscription: {subscription_path}")
 print("[WORKER] Worker ready.")
 
-# Email address to receive drift alerts
-ALERT_EMAIL = "yourgmail@gmail.com"   # <-- CHANGE THIS
+
+ALERT_EMAIL = os.getenv("EMAIL_ID")  
 
 
 def process_job(job):
@@ -52,18 +44,14 @@ def process_job(job):
     baseline_texts = baseline_df[baseline_df.columns[0]].astype(str).tolist()
     drift_texts = drift_df[drift_df.columns[0]].astype(str).tolist()
 
-    # ----------------------------------------------------
-    # Compute drift metrics
-    # ----------------------------------------------------
+  
     dataset_name = drift_key.split("/")[-1]
     metrics = compute_all(baseline_texts, drift_texts, dataset_name)
 
     print("\n[WORKER] DRIFT METRICS:")
     print(metrics)
 
-    # ----------------------------------------------------
-    # NEW: Save latest result for UI (Streamlit)
-    # ----------------------------------------------------
+ 
     try:
         os.makedirs("data", exist_ok=True)
         latest_path = os.path.join("data", "latest_result.json")
@@ -75,16 +63,12 @@ def process_job(job):
     except Exception as e:
         print(f"[WORKER] Failed to save latest result: {e}")
 
-    # ----------------------------------------------------
-    # Save to PostgreSQL
-    # ----------------------------------------------------
+ 
     db.create_table_if_not_exists()
     db.insert_metrics(metrics)
     print("[WORKER] Metrics saved to database.")
-
-    # ----------------------------------------------------
-    # Gmail Alerts (Conditions)
-    # ----------------------------------------------------
+    send_slack_alert(metrics)
+  
     try:
         ood_rate = float(metrics.get("ood_rate", 0.0))
         topic_kl = float(metrics.get("topic_kl", 0.0))
