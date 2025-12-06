@@ -234,27 +234,7 @@ drift_score = 1 - cosine_similarity(baseline_mean, drift_mean)
 
 ---
 
-### **6️⃣ Drift Decision Table**
 
-| Drift Score | Interpretation |
-| ----------- | -------------- |
-| < 0.10      | No drift       |
-| 0.10–0.20   | Moderate drift |
-| > 0.20      | High drift     |
-
----
-
-# **Sample Worker Output**
-
-```
-[WORKER] Drift detection START
-[WORKER] Baseline shape: (1000, 1)
-[WORKER] Drift shape: (1000, 1)
-[WORKER] DRIFT SCORE = 0.2431
-[WORKER] 🚨 HIGH DRIFT DETECTED!
-```
-
----
 
 # **Running the Project**
 
