@@ -1,8 +1,8 @@
 # **Project Overview**
 
-# **ML Data Drift Detection System**
+# **Data Drift Detection System**
 
-### *Real-Time Drift Monitoring Using FastAPI, RabbitMQ / PubSub, MinIO, and Sentence Transformers*
+### *Data Drift Detection Using FastAPI, Streamlit, MinIO, Sentence Transformers , Postgres *
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-blue" />
@@ -37,20 +37,20 @@ The system then:
 
 1. Stores both datasets in **MinIO (S3-compatible storage)**
 
-2. Publishes a drift detection job through **RabbitMQ or Google Pub/Sub**
+2. Publishes a drift detection job through **Google Pub/Sub**
 
 3. Drift Detection Service (Worker):
 
    * Downloads target & reference datasets
    * Computes embeddings using transformer models
-   * Calculates semantic, lexical, topic, and OOD drift
+   * Calculates semantic, lexical, topic,OOD drifts
    * Generates drift metric reports
 
 4. (Optional)
 
    * Stores drift metrics in **PostgreSQL**
    * Generates LLM-based summaries through **Gemini**
-   * Sends email notifications
+   * Sends email and slack notifications
 
 ---
 
@@ -165,11 +165,11 @@ Responsibilities:
 | ----------------------------- | --------------------------------- |
 | **FastAPI**                   | Dataset upload, API gateway       |
 | **MinIO (S3-compatible)**     | Object storage for CSV files      |
-| **RabbitMQ / Google Pub/Sub** | Asynchronous drift job processing |
+| **Google Pub/Sub** | Asynchronous drift job processing |
 | **SentenceTransformers**      | Embedding-based semantic drift    |
 | **Python Worker Service**     | Core drift engine                 |
 | **PostgreSQL (Optional)**     | Store drift metrics               |
-| **Gemini AI (Optional)**      | LLM drift summaries               |
+| **Gemini AI**                 | LLM drift summaries               |
 | **Docker**                    | Containerization                  |
 | **Uvicorn**                   | FastAPI ASGI server               |
 
@@ -221,16 +221,7 @@ Example message:
 Worker:
 
 * Downloads datasets
-* Embeds text using SentenceTransformer
-* Computes cosine similarity-based drift
-
----
-
-### **5️⃣ Drift Score**
-
-```
-drift_score = 1 - cosine_similarity(baseline_mean, drift_mean)
-```
+* Embeds text using SentenceTransformer 
 
 ---
 
