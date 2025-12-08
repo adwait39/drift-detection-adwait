@@ -1,6 +1,6 @@
 
-# **Data Drift Detection System**
-# ** Team : Adwait Pankaj Desai and Prithvikiran Premkumar **
+# Data Drift Detection System**
+# Team : Adwait Pankaj Desai and Prithvikiran Premkumar
 ### *FastAPI, Streamlit, MinIO, Sentence Transformers , Postgres *
 
 <p align="center">
