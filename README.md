@@ -1,7 +1,7 @@
 
 # Data Drift Detection System**
 # Team : Adwait Pankaj Desai and Prithvikiran Premkumar
-### *FastAPI, Streamlit, MinIO, Sentence Transformers , Postgres *
+### FastAPI, Streamlit, MinIO, Sentence Transformers , Postgres
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-blue" />
