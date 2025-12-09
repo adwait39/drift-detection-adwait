@@ -6,7 +6,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-blue" />
   <img src="https://img.shields.io/badge/FastAPI-High%20Performance-green" />
-  <img src="https://img.shields.io/badge/RabbitMQ-Message%20Broker-orange" />
+  <img src="https://img.shields.io/badge/Google Pub/Sub-Message%20Broker-orange" />
   <img src="https://img.shields.io/badge/MinIO-Object%20Storage-yellow" />
   <img src="https://img.shields.io/badge/SentenceTransformers-Embeddings-purple" />
 </p>
